@@ -436,12 +436,14 @@
 
 </main>
 
+<script src="https://f.convertkit.com/ckjs/ck.5.js"></script>
 <script>
 function submitEmail() {
   const input = document.getElementById('email-input');
   const row = document.getElementById('form-row');
   const success = document.getElementById('success-msg');
   const note = document.querySelector('.form-note');
+  const btn = document.querySelector('.form-btn');
 
   if (!input.value || !input.value.includes('@')) {
     input.style.borderLeft = '2px solid #e07474';
@@ -450,9 +452,40 @@ function submitEmail() {
     return;
   }
 
+  btn.textContent = '...';
+  btn.style.pointerEvents = 'none';
+
+  const form = document.createElement('form');
+  form.action = 'https://app.kit.com/forms/9376494/subscriptions';
+  form.method = 'post';
+  form.style.display = 'none';
+
+  const emailField = document.createElement('input');
+  emailField.name = 'email_address';
+  emailField.value = input.value;
+  form.appendChild(emailField);
+
+  const uidField = document.createElement('input');
+  uidField.name = 'data-uid';
+  uidField.value = 'c4d40ebfed';
+  form.appendChild(uidField);
+
+  document.body.appendChild(form);
+
+  // Show success immediately — Kit will process in background
   row.style.display = 'none';
-  note.style.display = 'none';
+  if (note) note.style.display = 'none';
   success.style.display = 'block';
+
+  // Submit to Kit
+  fetch('https://app.kit.com/forms/9376494/subscriptions', {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: `email_address=${encodeURIComponent(input.value)}&data-uid=c4d40ebfed`
+  });
+
+  document.body.removeChild(form);
 }
 </script>
 </body>
