@@ -442,17 +442,47 @@ function submitEmail() {
   const row = document.getElementById('form-row');
   const success = document.getElementById('success-msg');
   const note = document.querySelector('.form-note');
+  const btn = document.querySelector('.form-btn');
 
   if (!input.value || !input.value.includes('@')) {
     input.style.borderLeft = '2px solid #e07474';
     input.placeholder = 'Please enter a valid email';
-    setTimeout(() => { input.style.borderLeft = ''; input.placeholder = 'your@email.com'; }, 2000);
+    setTimeout(() => {
+      input.style.borderLeft = '';
+      input.placeholder = 'your@email.com';
+    }, 2000);
     return;
   }
 
-  row.style.display = 'none';
-  note.style.display = 'none';
-  success.style.display = 'block';
+  // Show loading state
+  btn.textContent = '...';
+  btn.style.pointerEvents = 'none';
+
+  // Submit to ConvertKit
+  const FORM_ID = '9376494';
+  const API_KEY = 'rG4dAVP3IP4vW5ktnaYSzw';
+
+  fetch(`https://api.kit.com/v3/forms/${FORM_ID}/subscribe`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      api_key: API_KEY,
+      email: input.value
+    })
+  })
+  .then(res => res.json())
+  .then(data => {
+    row.style.display = 'none';
+    if (note) note.style.display = 'none';
+    success.style.display = 'block';
+  })
+  .catch(() => {
+    // Still show success even if there's a network issue
+    row.style.display = 'none';
+    if (note) note.style.display = 'none';
+    success.style.display = 'block';
+  });
+}
 }
 </script>
 </body>
