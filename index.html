@@ -454,30 +454,17 @@ function submitEmail() {
     return;
   }
 
-  // Show loading state
   btn.textContent = '...';
   btn.style.pointerEvents = 'none';
 
-  // Submit to ConvertKit
-  const FORM_ID = '9376494';
-  const API_KEY = 'rG4dAVP3IP4vW5ktnaYSzw';
+  const formData = new FormData();
+  formData.append('email_address', input.value);
 
-  fetch(`https://api.kit.com/v3/forms/${FORM_ID}/subscribe`, {
+  fetch('https://barrowbound.kit.com/c4d40ebfed', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      api_key: API_KEY,
-      email: input.value
-    })
-  })
-  .then(res => res.json())
-  .then(data => {
-    row.style.display = 'none';
-    if (note) note.style.display = 'none';
-    success.style.display = 'block';
-  })
-  .catch(() => {
-    // Still show success even if there's a network issue
+    mode: 'no-cors',
+    body: formData
+  }).finally(() => {
     row.style.display = 'none';
     if (note) note.style.display = 'none';
     success.style.display = 'block';
