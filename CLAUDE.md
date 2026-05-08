@@ -133,8 +133,8 @@ No paid plans at launch. Gold introduced 2-3 months post-launch. No pressure, no
 - Barcode and ISBN scanner
 - Reading calendar
 - 80 notes
-- 3 reading challenges
-- Book Trivia (1 game only)
+- 10 reading challenges (any 10 from the full 55)
+- Book Trivia, Blind Roulette, Genre Bingo (3 games)
 - Forums, group chats and friend chats
 - Photos and videos in forum posts (up to 4 photos or 1 video per post, max 3 minutes)
 - Reels tab (vertical video feed)
@@ -146,8 +146,8 @@ No paid plans at launch. Gold introduced 2-3 months post-launch. No pressure, no
 
 ### Gold Plan — $17/month NZD (launching 2-3 months post-launch)
 - Everything in Free, plus:
-- 500 notes
-- All 55 reading challenges
+- Unlimited notes
+- 44 reading challenges
 - All 7 games
 - Full badge set (71 badges)
 - XP levels and cosmetic unlocks
@@ -522,4 +522,3 @@ Every prompt sent to Replit must:
 *Last updated: May 2026*
 *Real app: Replit with PostgreSQL + custom JWT auth + Resend*
 *Owner: Courtney, New Zealand*
-
