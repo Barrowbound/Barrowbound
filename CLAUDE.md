@@ -95,7 +95,7 @@ Owner is Courtney, based in New Zealand, building this using Replit AI agent.
 | barrowbound-refund-policy.docx | Refund Policy |
 | barrowbound-community-guidelines.docx | Community Guidelines |
 | barrowbound-games-challenges-badges.docx | Full spec for all 7 games, 55 challenges, 71 badges |
-| barrowbound-pricing-guide.docx | Pricing decisions, competitor comparison, change checklist |
+| barrowbound-pricing-guide.docx | Pricing decisions, competitor comparison, change checklist (updated to USD May 2026) |
 | barrowbound-social-content-plan.docx | 3-day social media content plan |
 
 ---
@@ -118,6 +118,8 @@ Clerk was removed entirely in May 2026. Replaced with custom JWT auth + Resend e
 - Login returns inline errors (no toasts)
 - Admin account: Courtney's personal email auto-grants is_pro=true + is_admin=true on first sign-in
 
+**Bootstrap security note:** All per-user state is keyed to the actual JWT value via a single bootstrap IIFE. Clears on logout, re-bootstraps on account switch, discards stale in-flight responses, listens to cross-tab storage events. Prevents cross-account data leaks — HIGH security issue caught and fixed May 2026.
+
 Replit Secrets required: JWT_SECRET, RESEND_API_KEY, DATABASE_URL
 
 ---
@@ -133,8 +135,8 @@ No paid plans at launch. Gold introduced 2-3 months post-launch. No pressure, no
 - Barcode and ISBN scanner
 - Reading calendar
 - 80 notes
-- 10 reading challenges (any 10 from the full 55)
-- Book Trivia, Blind Roulette, Genre Bingo (3 games)
+- 10 reading challenges (user picks any 10 from all 55)
+- 3 games: Book Trivia, Blind Roulette, Genre Bingo
 - Forums, group chats and friend chats
 - Photos and videos in forum posts (up to 4 photos or 1 video per post, max 3 minutes)
 - Reels tab (vertical video feed)
@@ -144,11 +146,11 @@ No paid plans at launch. Gold introduced 2-3 months post-launch. No pressure, no
 - Badges for free features
 - 3 themes (Candlelight, Midnight, Slate)
 
-### Gold Plan — $17/month NZD (launching 2-3 months post-launch)
+### Gold Plan — $9.99 USD/month (launching 2-3 months post-launch)
 - Everything in Free, plus:
 - Unlimited notes
-- 44 reading challenges
-- All 7 games
+- All 55 reading challenges (44 more than Free)
+- All 7 games (4 more than Free)
 - Full badge set (71 badges)
 - XP levels and cosmetic unlocks
 - All book clubs
@@ -164,7 +166,7 @@ No paid plans at launch. Gold introduced 2-3 months post-launch. No pressure, no
 - 7-day free trial
 - Cancel anytime
 
-No Bronze tier. No founding member pricing. No annual pricing yet. No Author Q&As (Phase 3). See barrowbound-pricing-guide.docx for full pricing decisions and change checklist.
+No Bronze tier. No founding member pricing. No annual pricing yet (likely $79–89 USD/year when added). No Author Q&As (Phase 3). Pricing is in USD globally — Stripe handles currency conversion for non-USD payment methods. See barrowbound-pricing-guide.docx for full pricing decisions and change checklist.
 
 ---
 
@@ -181,13 +183,15 @@ Each theme updates ALL CSS variables throughout the app. Selected theme stored i
 
 Full spec in barrowbound-games-challenges-badges.docx
 
-### Free (1 game)
+### Free (3 games)
 - Book Trivia
+- Blind Roulette
+- Genre Bingo
 
 ### Gold (all 7)
 - Book Trivia
-- Genre Bingo (multiplayer comparison with friends)
 - Blind Roulette
+- Genre Bingo
 - Reading Passport (passport/book layout with page flipping, 50 countries)
 - BookOpoly (5 themed boards: Fantasy, Romance, Thriller and Crime, Classic Literature, BookTok)
 - Book Bracket (pulls from user's actual Read shelf — all logged finished books)
@@ -219,28 +223,32 @@ Full spec with all descriptions and layouts in barrowbound-games-challenges-badg
 
 Categories: Game (8), Annual/Goal (7), Bingo (8), Fandom (5), Quest (4), Themed (9), Creative (5), Diversity (3), Social (3), Stats (3)
 
+Free users: any 10 challenges from all 55
+Gold users: all 55 challenges
+
 ### Challenge flow
-- Join/Joined buttons on all challenge cards
+- Join/Joined buttons call real API (POST /api/challenges/join, DELETE /api/challenges/leave/:challengeId)
+- Cards carry data-challenge-id; join/leave awaits the API before mutating UI
+- Page load fetches GET /api/challenges/active and restores joined state from database
 - Tapping Joined shows leave confirmation: "Do you want to leave [Name]? Your progress will be lost."
 - Game challenges: Play Now button opens linked game
 - Tracking challenges: Open Challenge button opens purpose-built tracker
 - Manage button on Your Active Challenges: opens modal showing all joined challenges with red Leave buttons
 
 ### Fandom challenges (updated May 2026)
-Replaced Discworld Journey, Stephen King Survivor, Brandon Sanderson Scholar with:
 - The Series Completionist (Ongoing, Moderate)
 - The Award Hunter (Year-Long, Moderate)
 - The Adaptation Chase (Year-Long, Casual)
 
 ### Diversity challenges (updated May 2026)
-- The Marginalised Voices Challenge (replaced Read the World)
+- The Marginalised Voices Challenge
 - Own Voices Challenge
-- The First Voices Challenge — Indigenous/First Nations authors (replaced Amplify Diverse Voices)
+- The First Voices Challenge — Indigenous/First Nations authors
 
 ### Social challenges (updated May 2026)
 - Buddy Read Challenge
 - Book Club Pick
-- Read and Recommend (replaced Review Swap)
+- Read and Recommend
 
 ### Parked future challenges
 - The Midnight Stack, The One-Sitting Club, The First Chapter Test, The Borrowed Worlds Challenge
@@ -263,6 +271,11 @@ Full spec in barrowbound-games-challenges-badges.docx
 
 Max 3 badges per game then XP only. Genre badges at 3 books, double XP at 6 books. Special: Beta Tester (comped accounts), Early Adopter (first month after launch).
 
+**Badge name corrections (reconciled with spec doc May 2026 — need DB update):**
+- "First Book" in DB → correct name is **First Chapter**
+- "On A Roll" in DB → correct name is **Devoted Reader** (finish 10 books)
+- "First Post" in DB → correct name is **Forum Voice**
+
 ---
 
 ## XP System (Gold)
@@ -278,187 +291,190 @@ Max 3 badges per game then XP only. Genre badges at 3 books, double XP at 6 book
 
 ## Notifications System
 
-Triggers a notification for:
-- Someone likes your forum post
-- Someone replies to your forum post
-- Friend request received and accepted
-- Book club discussion post added (notifies all club members)
-- Book club meeting reminder (1 hour before scheduled discussion)
-- Reading streak reminder at 8pm if no reading logged today (opt-in, default on)
-- Challenge milestone hit (halfway, nearly complete)
-- Buddy read partner logs progress
-- Weekly reading summary (opt-in, sent Sunday)
+**Infrastructure (real):** notifications table exists. Bell icon with unread badge in top bar. lib/notifications.ts helper callable from any route.
 
-Database: notifications table with id, user_id, type, title, body, read (boolean), created_at. Bell icon shows red badge count for unread.
+**Live triggers:** friend request received, friend request accepted
+
+**Pending triggers (build after underlying features confirmed real):**
+- Forum post liked, forum post replied to (forum now real — wire next)
+- Book club discussion post added (club discussions now real — wire next)
+- Book club meeting reminder (meetings not built)
+- Reading streak reminder — partial, not streak-aware
+- Challenge milestone hit (challenges real, milestone tracking not wired)
+- Buddy read partner logs progress (buddy reads not built)
+- Weekly reading summary (no weekly job)
+
+---
+
+## Notes System
+
+Real database table. POST /api/notes, GET /api/notes/:bookId. Book ownership enforced. Quick note on Currently Reading uses real book_id. Persists in book detail Notes tab.
+
+---
+
+## Gold Waitlist
+
+gold_waitlist boolean on user_profiles. POST /api/waitlist/gold. Shows "✓ You're on the list" persistently after tap.
 
 ---
 
 ## Search
 
-Two distinct types:
+Home screen global search: tabs All, Books, People, Clubs, Forum. Only user search (People tab) is a real endpoint. Others are shells still to build.
 
-Home screen global search: searches Open Library books, users by username, book clubs by name, forum posts. Results in tabs: All, Books, People, Clubs, Forum.
-
-Library search: searches only within user's own library by title and author.
-
-Book search ranking: exact title match first, starts with search term second, most popular by editions count as tiebreaker. Uses Open Library API with title: prefix and sort=editions.
+Library search: real — client-side filter over loaded data.
 
 ---
 
 ## Find Friends
 
-- Primary: search by username (case insensitive, partial match)
-- Secondary: QR code (generates unique profile QR, scannable by another user)
-- Suggested: 5 users based on shared genre preferences from onboarding
+- Username search — real API
+- QR code — shell
+- Suggested friends — shell
 - No contacts sync
 
 ---
 
 ## Onboarding (first login only)
 
-3-step flow after email verification. Tracked with has_completed_onboarding boolean on user_profiles.
-
-1. Genre preferences — select minimum 3 from all 22 genres (saved to user_profiles)
-2. Reading goal — number input, defaults to 26, quick-select: 12, 26, 52
-3. Theme — pick from 3 free themes (Candlelight pre-selected)
-
-After completing: has_completed_onboarding = true, show welcome card, then home screen.
+3-step flow: genre preferences → reading goal → theme. Tracked with has_completed_onboarding boolean. All real and verified.
 
 ---
 
 ## Email Notifications (via Resend)
 
-All from hello@barrowbound.app with Barrowbound branding.
-
-Active: email verification, password reset, friend request notification
-Opt-in: weekly reading digest (Sunday), friend request email
-Built not yet sent: Gold plan launch announcement template
+Active: email verification, password reset. Friend request email not yet built. Weekly digest job not built.
 
 ---
 
-## Forum — Media Posts
+## Forum
 
-- Photos: up to 4 per post (jpg, png, webp, under 1MB each)
-- Videos: 1 per post, maximum 3 minutes, maximum 200MB (mp4, mov)
-- No mixing photos and videos in same post
-- All media stored on Cloudinary (not database or Replit filesystem)
-- Single photo: full width. Multiple photos: 2-column grid. Videos: thumbnail with play button.
+**Text posting, likes, replies:** all real. forum_posts (with title, category, spoiler, rating columns), forum_post_likes (derived counts), forum_post_replies tables. Pagination, cascade deletes, XSS protection all verified.
 
-### Reels Tab
-- Separate Community tab alongside Clubs, Groups, Friends, Forum
-- Vertical scrolling feed of video posts only
-- Autoplay on scroll, pause on scroll away (muted by default)
-- Right side: likes, comments, share. Optional book tag links to book detail.
+**Media:** photos (up to 4, max 1MB each) and videos (1 per post, max 3 min, max 200MB) wired via Replit App Storage presigned URLs. Auth gate on upload endpoint. HEAD check enforces size limits server-side.
+
+**Share to Forum from Reviews:** real — calls POST /api/forum/posts with category=review and star rating stored in rating column.
+
+**Reels tab:** not yet built.
 
 ---
 
 ## Chats
 
-Three types — save to database, update via polling every 3 seconds:
-- Friend Chats: direct messages between two users
-- Group Chats: multi-user community chats
-- Book Club Discussions: threaded posts within a club
+**Friend DMs:** real, verified, unique-index constraint on direct_conversations table.
+**Group chats:** real, verified, creator-only member management.
+**Club discussions:** real, verified, 32/32 e2e tests. clubs.conversation_id FK, atomic creation.
 
-All chats: chronological order, auto-scroll to latest, timestamps, unread indicators, 📎 image attachment button.
+All chats: polling every 3s, chronological, auto-scroll, timestamps. Unread badges deferred.
+
+---
+
+## Activity Feed
+
+Real. activity_events table with index on (user_id, created_at DESC). GET /api/activity/feed returns friends' events plus caller's own. 5 trigger points wired: finished_book, started_book, progress_update, joined_challenge, earned_badge. Paginated, relative timestamps.
 
 ---
 
 ## Review Flow
 
-When a book is marked as Read:
-1. Bottom sheet appears: "You finished [Book Title]! 🎉" with star rating and review text area
-2. Save Review (saves to database and book detail Review tab) or Maybe Later
-3. After saving: optional "Share to Forum?" prompt
-4. Maybe Later: reminder banner shown on Review tab next visit
+Book marked as Read → bottom sheet with star rating and review → Save (real API) or Maybe Later → optional Share to Forum (real API). Real end to end.
 
 ---
 
 ## Quick Note on Currently Reading
 
-📝 button on each Currently Reading card on home screen. Opens quick note bottom sheet for that book. Saves to book's Notes tab. Updates The Annotator challenge progress.
+Real. Uses real book_id from /api/books. Saves to notes table. Updates book detail Notes tab.
+
+---
+
+## Reading Calendar
+
+Real. GET /api/sessions?year=&month= wired to calendar frontend. Month navigation refetches. tapDay shows real book titles and pages logged. IDOR fix and stale-response guard in place.
 
 ---
 
 ## Performance and Stability
 
-- Database indexes on: email, username, user_id, book_id, conversation_id, created_at
-- Pagination on all list endpoints (default limit 20)
-- Short-term caching (60 seconds) for Open Library results and user profile data
-- All image uploads compressed (max 1200px, under 500KB, webp where possible)
-- Error boundaries: API failures show retry button not blank screen
+Database indexes, pagination (limit 20), 60s caching, image compression, error boundaries — all real and verified.
 
 ---
 
-## PWA
+## PWA / SEO
 
-manifest.json: name Barrowbound, display standalone, background #0e0c0a, theme #d4a843, icons 192x192 and 512x512, Apple meta tags. Installable on Android and iPhone home screen.
-
----
-
-## SEO
-
-Open Graph meta tags on app HTML: title, description, og:title, og:description, og:image (Barrowbound logo), og:url, twitter:card, canonical URL.
+PWA manifest real. Open Graph meta tags real.
 
 ---
 
 ## Data Export
 
-Settings > Import/Export:
-- CSV: library with title, author, shelf, format, dates, rating, pages, review
-- JSON: complete profile data
-- PDF reading journal: profile header, year stats, books read, quotes, challenge progress
+CSV, JSON, PDF — all real and verified.
 
 ---
 
 ## Replit — Real App Progress
 
-### Completed
-- Custom JWT auth (Clerk fully removed), Resend email, bcrypt passwords
-- PostgreSQL: users, user_profiles, books, messages, conversations, conversation_members, notifications tables
-- Admin account auto-grant (is_pro + is_admin)
-- Full library CRUD, reading progress, home screen stats
-- Community screens, forum, chats, book clubs
-- Profile screen, settings, all sub-screens
-- Gold waitlist button (gold_waitlist boolean in database)
-- Username duplicate checking with bookish suggestions
-- Themes stored in database and persisting
-- Challenge cards, game tiles, Manage modal with Leave confirmation
-- Review prompt when book marked as Read
-- Quick note button on Currently Reading cards
-- 3-step onboarding for new users
-- Notifications system with all defined triggers
-- Global search and library-only search
-- Find Friends (username search, QR code, suggested friends)
-- PWA manifest and app icon
-- Open Graph SEO meta tags
-- Data export (CSV, JSON, PDF)
-- Photos and videos in forum posts (Cloudinary)
-- Reels tab in Community
-- Chat system with polling and unread indicators
-- Performance optimisation (indexes, pagination, caching, compression)
-- Error boundaries
+> IMPORTANT: One fix per Replit run. No bundling. Every prompt needs a scope lock and regression check. Treat completed items as claimed-completed until verified with a diagnose-only prompt.
 
-### Still to build (in order)
-1. Batch 4 — Add Book cover photo upload
-2. Batch 5 — BookOpoly overhaul (5 board versions)
-3. Batch 6 — Reading RPG + unified XP system
-4. Batch 8 — Free/Gold feature gating
-5. Batch 9 — Responsive layout
-6. Batch 10 — Game completion flow + multiplayer Trivia and Bingo
-7. Book Trivia question database (5,000-10,000 questions, 11 categories)
-8. Fantasy Book Bingo completion popup + Start New Board
-9. Roulette wheel angle math fix
-10. Purpose-built trackers for all tracking challenges
-11. Reading Passport passport/book layout with page flipping
-12. 26 in 2026 Barrowbound B stamp animation
-13. BookOpoly 5 themed board versions
+### Completed and verified
+- Full auth system (JWT, bcrypt, Resend, admin auto-grant, bootstrap security fix)
+- PostgreSQL: 20+ tables including all chat, forum, activity, badge, challenge, notes tables
+- Library CRUD, reading progress, home screen stats
+- Reading calendar (real API, month navigation, tapDay)
+- Profile, settings (mostly real — some sub-screens unverified)
+- Themes persisting in DB
+- 3-step onboarding
+- Username duplicate checking
+- Challenges — real table, API, join/leave persists
+- Gold waitlist button — real
+- Quick notes — real
+- Notifications — table, bell icon, friend request triggers live
+- Review prompt — real API
+- BookOpoly game (localStorage)
+- Data export (CSV, JSON, PDF)
+- Find Friends — username search real
+- Library-only search real
+- Friend DMs, Group chats, Club discussions — all real, all tested
+- Forum — posting, likes, replies, media uploads, share-to-forum — all real
+- Activity feed — real, 5 triggers wired
+- Badge system — 7 badges wired (64 seed rows pending)
+- The Decade Hopper challenge — 11 slots, real tracker, badge at 11/11
+- PWA, SEO, performance, error boundaries
+
+### Still to build (in priority order)
+1. Badge name corrections in DB (First Chapter, Devoted Reader, Forum Voice)
+2. Book save flow fix — author/cover not persisting from Open Library (fixes Unknown Author, No cover, form not clearing, book not in Currently Reading)
+3. My Library — tapping book doesn't open detail view
+4. My Library All Books tab — show shelf status per book
+5. Challenge cards — 3 per row, challenge count discrepancy (54 vs 55)
+6. Reading Calendar — year jump navigation
+7. Notification triggers — wire forum likes, replies, club posts (underlying features now real)
+8. Reels tab
+9. Unread badges across chats
+10. Global search — book, club, forum tabs
+11. Friend request email via Resend
+12. QR code and suggested friends
+13. Barcode scanner (real camera)
+14. Free/Gold feature gating (10 challenges, 3 games, 80 notes, 2 clubs for Free)
+15. My Library layout toggle (polish)
+16. Batch 5 — BookOpoly 5 board versions
+17. Batch 6 — Reading RPG + XP system
+18. Batch 9 — Responsive layout
+19. Batch 10 — Game completion flow + multiplayer
+20. Book Trivia question database
+21. Fantasy Book Bingo completion popup
+22. Roulette wheel angle fix
+23. Purpose-built challenge trackers
+24. Reading Passport layout
+25. 26 in 2026 B stamp animation
+26. 64 remaining badge seed rows
+27. Typecheck cleanup
 
 ---
 
 ## Website Deploy Checklist
 
 - ✅ coming-soon.html live at barrowbound.app
-- ❌ pricing.html — built, not yet uploaded to GitHub
+- ❌ pricing.html — built, not yet uploaded
 - ❌ terms.html — not yet uploaded
 - ❌ privacy.html — not yet uploaded
 - ❌ refund-policy.html — not yet uploaded
@@ -469,56 +485,51 @@ Settings > Import/Export:
 ## Pre-Launch Checklist
 
 ### Must do before launch
-- Security audit (45-point prompt written — run when app is feature-stable)
-- Tester/promoter accounts (set up 1-2 weeks before launch)
+- Security audit (45-point prompt written — run when feature-stable)
+- Tester/promoter accounts (1-2 weeks before launch)
 - NZ lawyer review of legal documents
-- All Batches 4-10 complete
-- All website deploy checklist items uploaded
-- Book search ranking fixed
-- Barcode scanner camera working
-- Profile photo upload working
-- Forum filters working
-- Calendar month navigation working
-- Themes fully applying and persisting
+- All Still to Build items complete
+- All website pages uploaded
 - Hardware back button closing modals app-wide
 
 ### Growth before launch
 - Update TikTok bio with barrowbound.app
-- Post 5 social content pieces (scripts ready in barrowbound-social-content-plan.docx)
+- Post 5 social content pieces
 - Build waitlist to 1,000
 - Find BookTok micro-influencers
 - Set up Kit Gold launch broadcast template
 
 ### Post-launch (1-3 months)
-- Stripe integration and Gold plan launch at $17/month NZD
-- Annual pricing for Gold (on hold)
+- Stripe + Gold launch at $9.99 USD/month
+- Annual pricing (on hold — likely $79–89 USD/year)
 - BookOpoly multiplayer
 - App Store and Google Play (Phase 3)
 - Author Q&As (Phase 3)
-- NZ business registration and GST (when needed)
+- NZ GST registration (only when revenue passes NZ$60,000)
 
 ---
 
 ## Tester/Promoter Accounts
 
-Set up 1-2 weeks before launch. To grant Gold access:
-- Add email to ADMIN_EMAILS secret in Replit before they sign up, OR
-- Run: UPDATE user_profiles SET is_pro = true WHERE email = 'their@email.com';
+Add email to ADMIN_EMAILS secret before signup, OR run:
+`UPDATE user_profiles SET is_pro = true WHERE email = 'their@email.com';`
 
 ---
 
 ## Replit Prompting Rules
 
-Every prompt sent to Replit must:
-1. Diagnose first — check files/configs before touching anything
+1. Diagnose first
 2. Report findings at each step
 3. Fix based on evidence not assumptions
-4. Test end to end before finishing
-5. Only touch minimum code required — do not cause regressions
-6. Report all changes made at the end
+4. Test end to end — data must persist after page refresh
+5. Only touch minimum code — no regressions
+6. Report all changes at the end
+7. Include explicit scope lock (list files not to touch)
+8. Include regression check (5 key endpoints) before finishing
+9. One fix per prompt — no bundling
 
 ---
 
-*Last updated: May 2026*
-*Real app: Replit with PostgreSQL + custom JWT auth + Resend*
+*Last updated: May 2026 — free plan updated (10 challenges, 3 games: Trivia/Roulette/Bingo, 80 notes), gold plan updated (all 55 challenges, unlimited notes), badge names reconciled with spec, all forum/chat/activity/calendar features verified real*
+*Real app: Replit with PostgreSQL + custom JWT auth + Resend + Replit App Storage*
 *Owner: Courtney, New Zealand*
