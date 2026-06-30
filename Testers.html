@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Barrowbound — Beta Tester Application</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0e0c0a;
+      --surface: #1a1612;
+      --surface2: #221e19;
+      --gold: #d4a843;
+      --gold-dim: #9a7a30;
+      --text: #f5ede0;
+      --text-dim: #8a7e72;
+      --border: #2e2820;
+      --error: #c0392b;
+      --success: #2ecc71;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 300;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 0 20px 80px;
+    }
+
+    /* ── Ambient background glow ── */
+    body::before {
+      content: '';
+      position: fixed;
+      top: -200px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(212,168,67,0.06) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── Header ── */
+    header {
+      width: 100%;
+      max-width: 560px;
+      text-align: center;
+      padding: 64px 0 48px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .logo-mark {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.35em;
+      color: var(--gold-dim);
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+
+    h1 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(36px, 7vw, 52px);
+      font-weight: 500;
+      color: var(--text);
+      line-height: 1.1;
+      margin-bottom: 16px;
+      letter-spacing: -0.01em;
+    }
+
+    h1 em {
+      color: var(--gold);
+      font-style: italic;
+    }
+
+    .header-rule {
+      width: 48px;
+      height: 1px;
+      background: var(--gold);
+      margin: 20px auto;
+      opacity: 0.5;
+    }
+
+    .header-sub {
+      font-size: 15px;
+      color: var(--text-dim);
+      line-height: 1.6;
+      max-width: 400px;
+      margin: 0 auto;
+    }
+
+    /* ── Form card ── */
+    .card {
+      width: 100%;
+      max-width: 560px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 40px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* corner bracket accent — top left */
+    .card::before {
+      content: '';
+      position: absolute;
+      top: -1px;
+      left: -1px;
+      width: 28px;
+      height: 28px;
+      border-top: 1px solid var(--gold);
+      border-left: 1px solid var(--gold);
+      border-radius: 12px 0 0 0;
+    }
+
+    /* corner bracket accent — bottom right */
+    .card::after {
+      content: '';
+      position: absolute;
+      bottom: -1px;
+      right: -1px;
+      width: 28px;
+      height: 28px;
+      border-bottom: 1px solid var(--gold);
+      border-right: 1px solid var(--gold);
+      border-radius: 0 0 12px 0;
+    }
+
+    /* ── Field groups ── */
+    .field {
+      margin-bottom: 24px;
+    }
+
+    .field:last-of-type {
+      margin-bottom: 32px;
+    }
+
+    label {
+      display: block;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--gold-dim);
+      margin-bottom: 8px;
+    }
+
+    input[type="text"],
+    input[type="email"],
+    select,
+    textarea {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px;
+      font-weight: 300;
+      padding: 14px 16px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      appearance: none;
+      -webkit-appearance: none;
+    }
+
+    input::placeholder,
+    textarea::placeholder {
+      color: var(--text-dim);
+      opacity: 0.6;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 3px rgba(212,168,67,0.08);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 110px;
+      line-height: 1.6;
+    }
+
+    /* custom select arrow */
+    .select-wrap {
+      position: relative;
+    }
+
+    .select-wrap::after {
+      content: '▾';
+      position: absolute;
+      right: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--gold-dim);
+      font-size: 13px;
+      pointer-events: none;
+    }
+
+    select option {
+      background: var(--surface2);
+      color: var(--text);
+    }
+
+    /* ── Checkbox group ── */
+    .checkbox-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 2px;
+    }
+
+    .checkbox-label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface2);
+      transition: border-color 0.2s, background 0.2s;
+      font-size: 14px;
+      color: var(--text-dim);
+      text-transform: none;
+      letter-spacing: 0;
+      font-weight: 300;
+    }
+
+    .checkbox-label:hover {
+      border-color: var(--gold-dim);
+      color: var(--text);
+    }
+
+    .checkbox-label input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      background: var(--bg);
+      appearance: none;
+      -webkit-appearance: none;
+      cursor: pointer;
+      flex-shrink: 0;
+      position: relative;
+      transition: background 0.2s, border-color 0.2s;
+    }
+
+    .checkbox-label input[type="checkbox"]:checked {
+      background: var(--gold);
+      border-color: var(--gold);
+    }
+
+    .checkbox-label input[type="checkbox"]:checked::after {
+      content: '✓';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 11px;
+      color: #1a0e00;
+      font-weight: 700;
+    }
+
+    .checkbox-label:has(input:checked) {
+      border-color: var(--gold);
+      background: rgba(212,168,67,0.06);
+      color: var(--text);
+    }
+
+    /* ── Divider ── */
+    .section-divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 32px 0;
+    }
+
+    .section-label {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 13px;
+      font-style: italic;
+      color: var(--gold-dim);
+      margin-bottom: 20px;
+    }
+
+    /* ── Submit button ── */
+    .btn-submit {
+      width: 100%;
+      background: var(--gold);
+      color: #1a0e00;
+      border: none;
+      border-radius: 8px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      padding: 16px;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.15s;
+    }
+
+    .btn-submit:hover {
+      opacity: 0.92;
+      transform: translateY(-1px);
+    }
+
+    .btn-submit:active {
+      transform: translateY(0);
+      opacity: 0.85;
+    }
+
+    .btn-submit:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* ── Footer note ── */
+    .form-note {
+      text-align: center;
+      font-size: 13px;
+      color: var(--text-dim);
+      margin-top: 20px;
+      line-height: 1.5;
+    }
+
+    /* ── Success state ── */
+    .success-screen {
+      display: none;
+      text-align: center;
+      padding: 48px 32px;
+    }
+
+    .success-screen.visible {
+      display: block;
+    }
+
+    .success-icon {
+      font-size: 40px;
+      margin-bottom: 20px;
+    }
+
+    .success-screen h2 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 28px;
+      font-weight: 500;
+      color: var(--text);
+      margin-bottom: 12px;
+    }
+
+    .success-screen p {
+      font-size: 15px;
+      color: var(--text-dim);
+      line-height: 1.6;
+    }
+
+    .form-fields {
+      display: block;
+    }
+
+    .form-fields.hidden {
+      display: none;
+    }
+
+    /* ── Error message ── */
+    .field-error {
+      font-size: 12px;
+      color: #e57373;
+      margin-top: 6px;
+      display: none;
+    }
+
+    .field-error.visible {
+      display: block;
+    }
+
+    /* ── Footer ── */
+    footer {
+      margin-top: 48px;
+      text-align: center;
+      font-size: 12px;
+      color: var(--text-dim);
+      opacity: 0.5;
+      position: relative;
+      z-index: 1;
+    }
+
+    footer a {
+      color: var(--gold-dim);
+      text-decoration: none;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 480px) {
+      header { padding: 48px 0 36px; }
+      .card { padding: 28px 24px; }
+      .checkbox-group { grid-template-columns: 1fr; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <p class="logo-mark">Barrowbound</p>
+    <h1>Become a<br /><em>Beta Tester</em></h1>
+    <div class="header-rule"></div>
+    <p class="header-sub">We're looking for readers who take their reading seriously. Help us shape Barrowbound before launch.</p>
+  </header>
+
+  <div class="card">
+
+    <div class="form-fields" id="formFields">
+
+      <p class="section-label">Tell us about yourself</p>
+
+      <div class="field">
+        <label for="name">Your name or username</label>
+        <input type="text" id="name" name="name" placeholder="How should we address you?" autocomplete="name" />
+        <p class="field-error" id="name-error">Please enter your name or username.</p>
+      </div>
+
+      <div class="field">
+        <label for="email">Email address</label>
+        <input type="email" id="email" name="email" placeholder="you@example.com" autocomplete="email" />
+        <p class="field-error" id="email-error">Please enter a valid email address.</p>
+      </div>
+
+      <hr class="section-divider" />
+      <p class="section-label">Your reading life</p>
+
+      <div class="field">
+        <label>What genres do you read?</label>
+        <div class="checkbox-group">
+          <label class="checkbox-label"><input type="checkbox" name="genres" value="Fantasy" /> Fantasy</label>
+          <label class="checkbox-label"><input type="checkbox" name="genres" value="Romance" /> Romance</label>
+          <label class="checkbox-label"><input type="checkbox" name="genres" value="Romantasy" /> Romantasy</label>
+          <label class="checkbox-label"><input type="checkbox" name="genres" value="Thriller" /> Thriller</label>
+          <label class="checkbox-label"><input type="checkbox" name="genres" value="Mystery" /> Mystery</label>
+          <label class="checkbox-label"><input type="checkbox" name="genres" value="Horror" /> Horror</label>
+          <label class="checkbox-label"><input type="checkbox" name="genres" value="Dark Romance" /> Dark Romance</label>
+          <label class="checkbox-label"><input type="checkbox" name="genres" value="Literary Fiction" /> Literary Fiction</label>
+          <label class="checkbox-label"><input type="checkbox" name="genres" value="Historical Fiction" /> Historical Fiction</label>
+          <label class="checkbox-label"><input type="checkbox" name="genres" value="Non-Fiction" /> Non-Fiction</label>
+          <label class="checkbox-label"><input type="checkbox" name="genres" value="Sci-Fi" /> Sci-Fi</label>
+          <label class="checkbox-label"><input type="checkbox" name="genres" value="Other" /> Other</label>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="device">What device will you test on?</label>
+        <div class="select-wrap">
+          <select id="device" name="device">
+            <option value="" disabled selected>Select your device</option>
+            <option value="iPhone">iPhone</option>
+            <option value="Android">Android</option>
+            <option value="Desktop">Desktop (Mac or PC)</option>
+            <option value="iPhone + Desktop">iPhone + Desktop</option>
+            <option value="Android + Desktop">Android + Desktop</option>
+          </select>
+        </div>
+        <p class="field-error" id="device-error">Please select a device.</p>
+      </div>
+
+      <div class="field">
+        <label for="tracker">Have you used a reading tracker before?</label>
+        <div class="select-wrap">
+          <select id="tracker" name="tracker">
+            <option value="" disabled selected>Select an option</option>
+            <option value="No — this would be my first">No — this would be my first</option>
+            <option value="Goodreads">Goodreads</option>
+            <option value="StoryGraph">StoryGraph</option>
+            <option value="Fable">Fable</option>
+            <option value="Bookly">Bookly</option>
+            <option value="Notion or spreadsheet">Notion or spreadsheet</option>
+            <option value="Multiple apps">Multiple apps</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+      </div>
+
+      <hr class="section-divider" />
+      <p class="section-label">One last thing</p>
+
+      <div class="field">
+        <label for="reason">Why do you want to test Barrowbound?</label>
+        <textarea id="reason" name="reason" placeholder="A sentence or two is perfect — we read every response personally."></textarea>
+        <p class="field-error" id="reason-error">Please tell us a little about why you'd like to test.</p>
+      </div>
+
+      <button type="button" class="btn-submit" id="submitBtn" onclick="handleSubmit()">
+        Apply to Test Barrowbound
+      </button>
+
+    </div>
+
+    <div class="success-screen" id="successScreen">
+      <div class="success-icon">🕯️</div>
+      <h2>Application received</h2>
+      <p>Thank you for applying. We'll be in touch via email if you're selected — usually within a few days.<br /><br />In the meantime, keep reading.</p>
+    </div>
+
+  </div>
+
+  <p class="form-note">Spots are limited. We'll reach out personally to everyone selected.</p>
+
+  <footer>
+    <a href="https://barrowbound.app">barrowbound.app</a> &nbsp;·&nbsp; hello@barrowbound.app
+  </footer>
+
+  <script>
+    function validateEmail(email) {
+      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    }
+
+    function showError(fieldId, errorId) {
+      document.getElementById(errorId).classList.add('visible');
+      document.getElementById(fieldId).style.borderColor = '#e57373';
+    }
+
+    function clearError(fieldId, errorId) {
+      document.getElementById(errorId).classList.remove('visible');
+      document.getElementById(fieldId).style.borderColor = '';
+    }
+
+    // Clear errors on input
+    ['name', 'email', 'device', 'reason'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.addEventListener('input', () => clearError(id, id + '-error'));
+    });
+
+    function handleSubmit() {
+      let valid = true;
+
+      const name = document.getElementById('name').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const device = document.getElementById('device').value;
+      const reason = document.getElementById('reason').value.trim();
+
+      clearError('name', 'name-error');
+      clearError('email', 'email-error');
+      clearError('device', 'device-error');
+      clearError('reason', 'reason-error');
+
+      if (!name) { showError('name', 'name-error'); valid = false; }
+      if (!validateEmail(email)) { showError('email', 'email-error'); valid = false; }
+      if (!device) { showError('device', 'device-error'); valid = false; }
+      if (reason.length < 10) { showError('reason', 'reason-error'); valid = false; }
+
+      if (!valid) return;
+
+      // Collect genres
+      const genres = Array.from(document.querySelectorAll('input[name="genres"]:checked'))
+        .map(cb => cb.value);
+
+      const tracker = document.getElementById('tracker').value;
+
+      // Disable button
+      const btn = document.getElementById('submitBtn');
+      btn.disabled = true;
+      btn.textContent = 'Sending…';
+
+      fetch('https://formspree.io/f/xykqdzed', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({
+          name,
+          email,
+          device,
+          tracker,
+          genres: genres.join(', '),
+          reason
+        })
+      })
+      .then(res => res.json().then(data => ({ ok: res.ok, data })))
+      .then(({ ok, data }) => {
+        if (ok) {
+          document.getElementById('formFields').classList.add('hidden');
+          document.getElementById('successScreen').classList.add('visible');
+        } else {
+          btn.disabled = false;
+          btn.textContent = 'Apply to Test Barrowbound';
+          // Show Formspree field errors if any
+          const errors = data.errors || [];
+          const msg = errors.length
+            ? errors.map(e => e.message).join(' ')
+            : 'Something went wrong — please try again or email hello@barrowbound.app';
+          alert(msg);
+        }
+      })
+      .catch(() => {
+        btn.disabled = false;
+        btn.textContent = 'Apply to Test Barrowbound';
+        alert('Something went wrong — please check your connection and try again, or email hello@barrowbound.app');
+      });
+    }
+  </script>
+
+</body>
+</html>
