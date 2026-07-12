@@ -207,6 +207,12 @@
     border-radius: 4px;
     background: var(--surface);
   }
+  .error-msg {
+    display: none;
+    font-size: 13px;
+    color: #e07474;
+    margin-top: 8px;
+  }
   .features {
     display: flex;
     flex-wrap: wrap;
@@ -272,7 +278,6 @@
     from { opacity: 0; transform: translateY(20px); }
     to { opacity: 1; transform: translateY(0); }
   }
-  /* Honeypot field — hidden from real users, visible to bots */
   .hp-field {
     position: absolute;
     left: -9999px;
@@ -282,7 +287,6 @@
     overflow: hidden;
     opacity: 0;
     pointer-events: none;
-    tabindex: -1;
   }
   @media (max-width: 480px) {
     .page { padding: 28px 20px; }
@@ -315,13 +319,14 @@
   <div class="form-wrap">
     <label class="form-label">Get early access</label>
     <div class="form-row" id="form-row">
-      <!-- Honeypot field — bots fill this in, real users never see it -->
+      <!-- Honeypot — hidden from real users, bots fill it in -->
       <input class="hp-field" type="text" name="website" id="hp-website" autocomplete="off" tabindex="-1"/>
       <input class="form-input" type="email" placeholder="your@email.com" id="email-input" autocomplete="email"/>
-      <button class="form-btn" onclick="submitEmail()">NOTIFY ME</button>
+      <button class="form-btn" id="submit-btn" onclick="submitEmail()">NOTIFY ME</button>
     </div>
-    <p class="form-note">No spam. Just a heads-up when we launch.</p>
+    <p class="form-note" id="form-note">No spam. Just a heads-up when we launch.</p>
     <div class="success-msg" id="success-msg">📚 You're on the list — we'll be in touch!</div>
+    <div class="error-msg" id="error-msg">Something went wrong — please try again.</div>
   </div>
   <div class="features">
     <div class="pill-row" style="width:100%;justify-content:center;">
@@ -348,17 +353,17 @@
   </div>
   <p class="footer">© 2026 Barrowbound · barrowbound.app</p>
 </main>
-<script src="https://f.convertkit.com/ckjs/ck.5.js"></script>
 <script>
-function submitEmail() {
+async function submitEmail() {
   const input = document.getElementById('email-input');
   const honeypot = document.getElementById('hp-website');
   const row = document.getElementById('form-row');
   const success = document.getElementById('success-msg');
-  const note = document.querySelector('.form-note');
-  const btn = document.querySelector('.form-btn');
+  const error = document.getElementById('error-msg');
+  const note = document.getElementById('form-note');
+  const btn = document.getElementById('submit-btn');
 
-  // Honeypot check — if this field has any value, it's a bot, silently reject
+  // Honeypot check — silently block bots
   if (honeypot && honeypot.value.length > 0) {
     row.style.display = 'none';
     if (note) note.style.display = 'none';
@@ -366,8 +371,9 @@ function submitEmail() {
     return;
   }
 
-  // Basic email validation
-  if (!input.value || !input.value.includes('@') || !input.value.includes('.')) {
+  // Email validation
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!input.value || !emailRegex.test(input.value)) {
     input.style.borderLeft = '2px solid #e07474';
     input.placeholder = 'Please enter a valid email';
     setTimeout(() => { input.style.borderLeft = ''; input.placeholder = 'your@email.com'; }, 2000);
@@ -376,16 +382,30 @@ function submitEmail() {
 
   btn.textContent = '...';
   btn.style.pointerEvents = 'none';
-  row.style.display = 'none';
-  if (note) note.style.display = 'none';
-  success.style.display = 'block';
 
-  fetch('https://app.kit.com/forms/9376494/subscriptions', {
-    method: 'POST',
-    mode: 'no-cors',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: `email_address=${encodeURIComponent(input.value)}&data-uid=c4d40ebfed`
-  });
+  try {
+    const res = await fetch('https://formspree.io/f/mlgqrwkg', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({ email: input.value, _subject: 'New Barrowbound waitlist signup' })
+    });
+
+    const data = await res.json();
+
+    if (res.ok) {
+      row.style.display = 'none';
+      if (note) note.style.display = 'none';
+      success.style.display = 'block';
+    } else {
+      btn.textContent = 'NOTIFY ME';
+      btn.style.pointerEvents = 'auto';
+      error.style.display = 'block';
+    }
+  } catch (err) {
+    btn.textContent = 'NOTIFY ME';
+    btn.style.pointerEvents = 'auto';
+    error.style.display = 'block';
+  }
 }
 </script>
 </body>
